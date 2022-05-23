@@ -1,0 +1,833 @@
+工作备忘录
+1.PR链接格式：（蓝云无法对外复制粘贴，此处用于手动）
+https://gitee.com/src-openeuler/libstoragemgmt/pulls/7
+https://gitee.com/src-openeuler/meta/pulls/651
+https://gitee.com/openeuler/community/pulls/1848
+https://gitee.com/openeuler/release-management/issues/I3S5XS?from=project-issue
+2.issue链接格式
+https://gitee.com/src-openeuler/certmonger/issues/I37UK1
+
+https://repo.openeuler.org/openEuler-20.09/  //后面验证20.09的可以配这个里面的repo
+
+openEuler系统账户（default）
+root/openEuler#12
+
+1、	请大家严格遵守软件包问题解决，升级需求，退出需求，软件包引入流程图中的规则，确保所有动作做到位，如果因为动作没有做到位而引发的质量事件，酌情扣除绩效。
+2、	X86环境缺失，没有固定的x86环境，每次验证问题解决编译失败都要临时协调x86环境，希望能够协调2-3台固定的x86环境。
+3、	请森林安排软件包升级，issue解决工具使用和处理流程的培训。
+4、	有能用的工具及时普及，对于软件包引入的工具，大家都不知道。https://gitee.com/src-openeuler/AutoImportTools
+5、	在处理流程添加一项obs验证是否归档。 https://gitee.com/unsunghero/obs_pkg_rpms/tree/master/repo_files
+
+
+建仓--高建行
+1、排查License是否黑名单
+2、查看URL是否可访问
+3、上游社区维护时间是否久远
+
+scp -P 1205 文件名 root@124.90.34.227:/root/public  密码jeff200902
+
+加班费的2倍是(基本工资+岗位工资)/21.75*2
+
+
+1. fedora srcrpm包下载解压上传obs [link](https://gitee.com/zhu-yuncheng/python-script)
+2. spec整改脚本 [link](https://gitee.com/wangchong1995924/lao_wang_9527/tree/master/script/spec_related)
+3. spec检查脚本 [link](https://gitee.com/src-openeuler/CheckSpecByPyrpm)
+4. rpm安装升级卸载、功能验证脚本 [link](https://gitee.com/Lostwayzxc/rpm_check)
+5. 生成yaml文件(目前只支持解析github和rubygem的版本控制信息) [link](https://gitee.com/gyn_emma/check-tool/blob/master/addYaml.py) 
+6. 提交码云pr脚本 [link](https://gitee.com/wangchong1995924/lao_wang_9527/tree/master/script/obs_related)
+
+这些脚本都是后面要使用的，大家当前阶段可以用来简化工作
+
+创建docker
+systemctl restart docker
+docker run --name sp1-new -v /opt:/home --privileged=true --net host -itd imgs_id /sbin/init(or /bin/bash) 
+//四种网络模式： 
+bridge模式：使用–net =bridge指定，默认设置；
+host模式：使用–net =host指定；
+none模式：使用–net =none指定；
+container模式：使用–net =container:NAMEorID指定。
+//启动docker
+docker exec -it sp1-new bash
+vim /etc/bashrc, 修改timeout=0
+docker start/stop sp1-new
+
+hpython-pack包：
+1.需要提个issue，内容如下：
+master分支不再支持使用python2，python-hpack需要删除python2的子包。
+2.python-hpack包删除python2子包的提交的PR描述：
+删除python2子包，是为了解决不支持python3的问题，已在obs工程验证，无引入依赖，且不会对其他包产生影响
+
+
+
+1.内核源码下载
+www:kernel.org/
+
+2.设置交叉编译工具
+下载交叉编译工具：https://mirrors.edge.kernel.org/pub/tools/crosstool
+
+CVE 问题解决思路
+1.目标：CVE指的是漏洞，解决CVE的方法是找到修复该CVE的补丁patch
+2.CVE排查流程：
+（1）通过CVE编号在几个开源社区（RedHat,Ubuntu,SUSE,NVD,debian等）中查找描述，确认包名。
+（2）阅读漏洞描述，描述的版本号和解决的仓库的包版本是否一致，若不一致则在表格备注“不涉及”即可。若一致请看（3）。
+（3）在几个社区查找补丁。
+  ① 若补丁不存在，则备注“社区无解决方案”
+  ② 若补丁存在，则将obs源码包拉到本地解压搜索补丁内容，若补丁内容与obs源码中的一致，则备注“已修复”。若补丁内容不一致或搜索不到，
+  则要打补丁，修改代码，提交PR。
+pkgs
+调试：
+ltrace/strace/dmesg
+
+工作流程账号：
+1.解决自依赖：scp -P 1208 *.rpm root@124.90.34.227:/home (密码112233)[姚凯]
+2.建仓：scp -P 1205 *.spec root@124.90.34.227:/root/public (密码)[高建行]
+
+rpmbuild 编译：
+1.rpm -ba xxx.spec
+**** -ba: 生成xxx.rpm和xxx.src.rpm； -bb: 仅生成xxx.rpm; -bp: 仅预处理，如解压缩
+2.dnf builddep xxx.spec，解决xxx的依赖问题。
+3.目录结构：mkdir -p {BUILD, BUILDROOT, SOURCE, SPECS, RPMS}
+4.%setup 解压开到处都是文件，需要用-c加上-n选项一起创建%{name}-%{version}，如%setup -q -c -n %{name}-%{version}
+
+压缩包拆分合并：
+1.拆分成几个指定大小的包（MB字节） 
+cat filename.tar.gz | split -b 90M - filename.tar.gz  //拆分为90M的小包
+2.合并几个拆分包为总包
+cat filename.tar.gz.aa filename.tar.gz.ab filename.tar.gz.ac > filename.tar.gz  //合并多个包为总包
+
+
+5.15进展
+1. fcgi/gromacs状态变更已完成
+2. libguestfs状态变更已完成
+3. python-lxml验证兼容性，兼容，状态变更无需引入
+5. svnkit/yum-metadata-parser/sequence-library/sqljet提交待建分支PR
+6. sqljet提交代码
+7. sequence-library的license待确认
+
+src-openeuler  (obs)常用地址:
+内网黄区小网ISO下载地址：	http://9.82.1.253/productrepo/openEuler-20.03-LTS/
+内网iso地址：http://10.175.124.178/productrepo/openEuler/EULEROS_BASIC/X86_64/openEuler-21.03/
+docker镜像：https://repo.openeuler.org/openEuler-20.03-LTS-SP1/docker_img/aarch64/openEuler-docker.aarch64.tar.xz
+repo源	http://9.82.1.253/productrepo/openEuler-20.03-LTS/everything/aarch64/
+每日构建	http://121.36.84.172/dailybuild
+内网黄区大网	http://10.175.124.178/productrepo/openEuler/EULEROS_BASIC/ARM64/
+OBS的repo源 http:119.3.219.20:82/openEuler:/20.03/LTS:/Next/standard_aarch64/
+差异性分析网站：https://bepcloud.rnd.huawei.com/taskManage/details/785568ac04c74767ba680168ea1f8dde 
+spec构建学习：https://fedoraproject.org/wiki/How_to_create_an_RPM_package/zh-cn#SPEC_.E6.96.87.E4.BB.B6.E5.89.96.E6.9E.90
+obs内网：http://117.78.1.88
+
+
+执行checkspec脚本：
+1). export PYTHONPATH=/home/tools/AutoImportTool
+2). python3 CheckSpec.py -p /home/fedo/Compatible_ecology/success
+每日构建 http://121.36.84.172/dailybuild
+
+配源：
+[openeuler-20.03-next]
+name=openeuler-20.03-next
+baseurl=http://119.3.219.20:82/openEuler:/20.03:/LTS:/Next/standard_x86_64/
+enabled=1
+gpgcheck=0
+
+[openeuler-20.03-next-epol]
+name=openeuler-20.03-next-epol
+baseurl=http://119.3.219.20:82/openEuler:/20.03:/LTS:/Next:/Epol/standard_x86_64/
+enabled=0
+gpgcheck=0
+
+tmux 左右分屏：ctrl + b 再按%  退出：ctrl+b 再按&, 或exit
+tmux 空格 调整窗口对齐
+tmux 上翻记录：ctrl + b再按page-up/down
+tmux ls查看上一次关闭的窗口
+tmux at -t win-id
+
+
+配置IP
+ip [-4/6] a (查看实际IP地址，inet4/6)
+vim /etc/sysconfig/network-scripts/ifcfg-enp6s0(配置网卡)
+vim /etc/resolv.conf中添加nameserver 114.114.114.114 (访问外网)
+nmcli conn reload enp6s0
+nmcli conn up enp6s0
+
+openEuler中的各平台默认版本：fedora=30，rhel=8
+
+maven学习
+在本地安装仓库：mvn install:install-file -DgroupId=xxx -DartifactId=XXX -Dversion=xxx -Dpackaging=xxx -Dfile=XXX.jar
+cp %{SOURCE1} ./.xmvn-reactor
+echo `pwd` > absolute_prefix.log
+sed -i 's/\//\\\//g' absolute_prefix.log
+absolute_prefix=`head -n 1 absolute_prefix.log`
+sed -i 's/absolute-prefix/'"$absolute_prefix"'/g' .xmvn-reactor
+
+//文本内容替换
+sed -i 's/src/target/g' filename 
+sed -i '10d' filename 删除第10行
+sed -i '10i\string' filename 在10行前插入， 10a行后插入
+
+
+rpm 宏：
+%{_topdir}: /root/rpmbuild
+%{_sourcedir}: /root/rpmbuild/SOURCES
+%{_specdir}: /root/rpmbuild/SPECS
+%{_builddir}: /root/rpmbuild/BUILD
+%{_buildrootdir}: /root/rpmbuild/BUILDROOThttps://cloudssh.huawei.com/#/
+%{_rpmdir}: /root/rpmbuild/RPMS
+
+rpm命令：
+1.rpmspec -P *.spec 解析spec 
+2.rpm --eval rpm宏  解析rpm宏
+3.rpm -qpl --provides *.rpm | sort > 1.txt 将rpm包提供的文件对比
+
+930版本master分支引包规范
+1.所有的包在引入前，都要先找maintainer确认是否接纳，找maintainer的时候最好给出依赖数量、license的排查结果；是否接纳结论归档至svn
+2.master分支只引入社区最新版本的包，对于需求版本不是上游最新版的包，有如下策略：
+（1）如果社区最新版兼容需求版本，直接引入社区最新版到master；
+（2）如果最新版不兼容需求版本，需要引入最新版和需求版本，步骤如下
+1>先在master引入社区最新版，最新版引入后,在码云仓库建立需求版本的多版本分支，引入需求版本，分支命名： Multi-Version_包名-版本_master；
+2>码云分支建立后,手动提交PR到obs_meta，按照示例创建multi-version的版本project
+
+多版本示例链接：
+https://gitee.com/small_leek/multi-repo/blob/master/%E6%94%AF%E6%8C%81%E5%A4%9A%E7%89%88%E6%9C%AC%E8%BD%AF%E4%BB%B6%E5%8C%85%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1.md
+
+osc命令
+osc branch 源工程  包名 新工程  //branch pkg from srcpro to targetpro
+osc branch -N 工程名 包名  //新建 home:用户名:branches:工程名/包名
+
+
+git解决冲突方法
+git remote add 新建分支名 远端仓库地址  //新建远端仓库，如git remote add oe https://gitee.com/openeuler/community
+git remote update //更新远端仓
+git rebase remotes/分支名/master (git rebase upstream/master )
+vim 冲突文件
+git add -A
+git rebase --continue
+git push -f
+
+###其他git命令
+git branch                             		#查看本地仓库分支
+git branch -r                          		#查看远程仓库分支
+git branch -a                          		#同时查看本地仓库与远程仓库的分支
+git merge <要合并过来的分支的名字>     		#将一条分支合并到当前的分支中
+例如：git checkout master              		//切换到master分支
+      git merge branch002              		//将名为 branch002 的分支合入到master分支
+git branch -d <分支名>	  					#删除本地分支
+例如：git branch -d branch002          		//删除本地仓库中，名为 branch002 的分支
+git push <远程仓库地址或别名> -d <分支名> 	#删除远程仓库分支
+例如：git push HTTPSOrigin -d branch002 	//从别名为HTTPSOrigin 的远程仓库中删除名为branch002 的分支     
+git 标签：<较繁杂，用之少>
+git tag <你给标签起的名字>       			#为当前最新的提交打上轻量标签
+例如：git tag myTag1                   		//为当前最新的提交上名字为 myTag1 的轻量标签
+git tag -a  <你给标签起的名字> -m <"你给标签编写的说明">    #为当前最新的提交打上附注标签
+例如：git tag -a myTag2 -m "This is a tag for show you~!"   //为当前最新的提交打上名字为 myTag2 的附注标签,标签的备注信息为 This is a ...
+git tag     								#将目前仓库内的标签的名称全部显示出来，在使用时可对其添加参数达到进行过滤的效果
+git show <你想查看的标签的名称> 			#查看指定标签详情,将名称为 myTag1 的标签详细信息和其指向的commit的信息显示出来
+
+git commit -m "fix/close/resolve #工作项编号 本次提交的信息"  //例如git commit -m "fix #123456 修复了这个bug"
+git remote -v          #该命令可以查看目前本地仓库所绑定的远程仓库地址。
+
+git pull可以理解为：git fetch的操作 + git merge的操作，其详细说明如下：
+git fetch origin master #从远程主机的master分支拉取最新内容  
+git merge FETCH_HEAD    #将拉取下来的最新内容合并到当前所在的分支中
+/******************************************************************************************
+Git很智能的将两个人的修改同时显示出来，并用“=======”分割开来
+“<<<<<<<HEAD” 与 “=======” 中间的是冲突位置中对应的本地仓库的修改。
+“=======” 与 “>>>>>>>” 中间的是冲突位置中对应的远程仓库的修改（也就是刚拉取下来的内容）。
+“>>>>>>>” 后面是本次的提交ID。
+“<<<<<<<HEAD”、“=======”、“>>>>>>>”、提交ID并非实际编写的代码，解决冲突时注意删除。
+提交时注意需要填写提交信息。“<<<<” 、“>>>>”、“====”等所在行是冲突展现与分割符，在修改代码解决冲突时，要注意将其删除。
+******************************************************************************************/
+
+如果开发者每天都要对本地仓库进行修改，则建议在本地新建一条开发分支进行代码修改，在要提交远程仓库时，
+切换到master分支并将远程仓库的最新master分支内容拉取到本地，在本地进行分支合并，对产生的冲突进行修复，
+成功将内容合并到master分支后，再提交到远程仓库。
+git解决冲突另一方法：本地切换分支、查看和合并
+1.更新代码，并切换到此合并请求源分支
+git fetch origin
+git checkout -b branch007 origin/branch007
+2.将目标分支合入源分支
+git merge origin/master
+3.根据提示，在本地手动解决冲突
+4.解决完冲突后提交到远端
+git add .
+git commit 
+git push origin branch007
+5.刷新界面，继续检视合并请求
+
+
+****spec编写见个人仓库：https://gitee.com/bzg1107/technical-summary****
+
+spec编写事项（错误集锦）：
+1、%make make %make_install  %cmake %cmake_build %cmake_install，如果编译报错：fg: no job control多是宏命令报错，应找合适的替换，如
+%cmake_build 换成make %{?_smp_mflags}等，%cmake_install 更换为make install DESTDIR=%{buildroot}等
+
+2、%build --- SOURCE, %install --- BUILD, %files --- BUILDROOT
+3、配置go（go 1.13版本支持）代理：Bash (Linux or macOS)
+	# 配置 GOPROXY 环境变量
+	export GOPROXY=https://goproxy.io,direct
+	# 还可以设置不走 proxy 的私有仓库或组，多个用逗号相隔（可选）
+	export GOPRIVATE=git.mycompany.com,github.com/my/private
+4、%{echo:message} ：打印信息到标准错误
+5、%{optflags}包含CFLAGS, CXXFLAGS, FFLAGS等. 等价于 %{__global_cflags}.
+export CFLAGS="%{optflags} -Wno-error=deprecated-declarations"
+6、%{build_ldflags}包含LDFLAGS:
+export CFLAGS="%{build_ldflags} -flo"
+
+Proxy Servers Table
+Area 		Proxy Server Address		Location
+Non R&D		Proxy.huawei.com 		General
+			proxycn2.huawei.com		China
+			proxynj.huawei.com		Nanjing
+			proxyhk.huawei.com		HK
+			proxyuk.huawei.com		UK
+			proxyus.huawei.com		US
+			proxyus-nrd.huawei.com	US-nrd
+			proxyru.huawei.com		Russia
+			Proxyjp.huawei.com		Japan
+			proxyblr.huawei.com		India
+			Proxybh.huawei.com		Bahrain
+			proxybr.huawei.com		Brazil 
+			
+R&D			Proxy.huawei.com		General
+			proxycn2.huawei.com		China
+			proxyus-rd.huawei.com	US
+			proxyse-rd.huawei.com	Sweden
+			proxyru-rd.huawei.com	Russia
+			proxytr-rd.huawei.com	Turkey
+
+OpenProxy	openproxy.huawei.com	No Proxy Permissions
+
+
+cdh下载：
+账号：preloyalwhite@163.com 密码：Bzg@1107
+
+go编译安装学习
+pushgateway:
+mkdir -p $(pwd)/bin
+export GOBIN=$(pwd)/bin
+go build -mod=vendor -o bin ./ ...
+
+查看环境设置：go env
+查看go版本：go version
+设置顶级vendor作为依赖：go env -w GOFLAGS="-mod=vendor"  查看env 是GOFLAGS=-mod=vendor，取消：g o env -w GOFLAGS="-mod="；
+指定gomod编译 模式：go build -mod=vendor
+go mod download下载模块到本地缓存，缓存路径是$GOPATH/pkg/mod/cache
+go mod edit是提供了命令版编辑go.mod的功能，例如go mod edit -fmt go.mod会格式化go.mod
+go mod graph把模块之间的依赖图显示出来
+go mod init初始化模块（例如把原本dep管理的依赖关系转换过来）
+go mod tidy增加缺失的包，移除没用的包
+go mod vendor把依赖拷贝到vendor/目录下
+go mod verify确认依赖关系
+go mod why解释为什么需要包和模块
+
+maven源：https://repo.maven.apache.org/maven2/com/sleepycat/je/7.4.5/je-7.4.5.pom
+oracle源：http://download.oracle.com/maven/com/sleepycat/je/7.4.5/je-7.4.5.pom
+
+
+rubygem编译安装学习：
+1.Gem介绍：Gem是一个管理Ruby库和程序的标准包，它通过Ruby Gem（如  http://rubygems.org/ ）源来查找、安装、升级和卸载软件包，非常的便捷。
+Ruby 1.9.2版本默认已安装Ruby Gem，如果你使用其它发行版本，请参考“ 如何安装Ruby Gem”。 
+2.Ruby gem包的安装方式：所有的gem包，会被安装到 /[Ruby root]/lib/ruby/gems/[ver]/ 目录下，这其中包括了Cache、doc、gems、specifications 4个目录，cache下放置下载的原生gem包，gems下则放置的是解压过的gem包。
+当安装过程中遇到问题时，可以进入这些目录，手动删除有问题的gem包，然后重新运行 gem install [gemname] 命令即可。
+3.Ruby Gem命令详解：
+# 更新Gem自身
+# 注意：在某些linux发行版中为了系统稳定性此命令禁止执行
+$ gem update --system
+
+# 从Gem源安装gem包
+$ gem install [gemname]
+
+# 从本机安装gem包
+$ gem install -l [gemname].gem
+
+# 安装指定版本的gem包
+$ gem install [gemname] --version=[ver]
+
+# 更新所有已安装的gem包
+$ gem update
+
+# 更新指定的gem包
+# 注意：gem update [gemname]不会升级旧版本的包，此时你可以使用 gem install [gemname] --version=[ver]代替
+$ gem update [gemname]
+
+# 删除指定的gem包，注意此命令将删除所有已安装的版本
+$ gem uninstall [gemname]
+
+# 删除某指定版本gem
+$ gem uninstall [gemname] --version=[ver]
+
+# 查看本机已安装的所有gem包
+$ gem list [--local]
+
+
+
+%define __debug_install_post \
+%{_rpmconfigdir}/find-debuginfo.sh %{?_find_debuginfo_opts} "%{_builddir}/%{?buildsubdir}"\
+%{nil}
+
+%global _empty_manifest_terminate_build 0
+%undefine _missing_build_ids_terminate_build
+%define _unpackaged_files_terminate_build 0
+%define _missing_doc_files_terminate_build 0
+%define debug_package %{nil}
+
+%{_datadir} === /usr/share
+%{_unitdir} === /usr/lib/systemd/system
+%{_bindir} === /usr/bin
+%{_libdir} === /usr/lib64
+//rubygem文件夹
+%{gem_dir} === /usr/share/gems
+%{gem_instdir} === /usr/share/gems/gems/%{gem_name}-%{version}
+%{gem_libdir} === /usr/share/gems/gems/%{gem_name}-%{version}/lib
+%{gem_cache} === /usr/share/gems/cache/%{gem_name}-%{version}.gem
+%{gem_spec} === /usr/share/gems/specifications/%{gem_name}-%{version}.gemspec
+15607145693
+
+
+解决python2和python3语法不兼容的问题，在setup.py中增加代码：
+import sys
+
+# select yaml package depending on pip
+PY2 = sys.version_info[0] == 2
+PY3 = sys.version_info[0] == 3
+exclude = []
+if PY3:
+    exclude.append('*.yaml2')
+else:
+    exclude.append('*.yaml3')
+
+packages=find_packages(exclude=exclude),
+
+install 命令：
+--backup[=CONTROL]：为每个已存在的目的地文件进行备份。 
+-b：类似 --backup，但不接受任何参数。 
+-d，--directory：所有参数都作为目录处理，而且会创建指定目录的所有主目录。 
+-D：创建<目的地>前的所有主目录，然后将<来源>复制至 <目的地>；在第一种使用格式中有用。 
+-g，--group=组：自行设定所属组，而不是进程目前的所属组。 
+-m，--mode=模式：自行设定权限模式 (像chmod)，而不是rwxr-xr-x。 
+-o，--owner=所有者：自行设定所有者 (只适用于超级用户)。 
+-p，--preserve-timestamps：以<来源>文件的访问/修改时间作为相应的目的地文件的时间属性。 
+-s，--strip：用strip命令删除symbol table，只适用于第一及第二种使用格式。 
+-S，--suffix=后缀：自行指定备份文件的<后缀>
+-t, --target-directory=目录 将源文件所有参数复制到指定目录
+exam:
+# 创建目录
+install -d /usr/bin
+# 将源文件复制到目标文件，后面的参数是文件
+install source_file dest_file
+# 将源文件复制到目标目录，后面的参数是目录，如果目录不存在，则会当做文件处理
+install source_file dest_dir
+# 将源文件复制到目标目录，后面的参数是目录，如果目录不存在，则命令失败
+install source_file dest_dir/
+
+# 复制文件，并设置文件权限，自动创建目标目录
+@install -p -D -m 0755 targets /usr/bin/targets
+# 相当于
+@mkdir -p /usr/bin
+@cp targets /usr/bin
+@chmod 755 /usr/bin/targets
+@touch /usr/bin/targets       <---- 更新文件时间戳
+<----@前缀的意思是不在控制台输出结果。
+
+从repo的依赖自闭环关系来讲，在用户使用过程中，默认是安装了ISO，然后可选是否挂载epol，所以，如果A原来就在ISO，那么B不管是编译还是安装依赖，都应该跟随A在ISO；如果A原来就在epol，则B无所谓在ISO或者epol
+
+CVE相关：
+
+影响性分析说明：
+FontForge 20190813 到 20190820 在 prefs.c 中的 PrefsUI_LoadPrefs 中存在缓冲区溢出
+
+openEuler评分:(评分和向量)
+openEulerScore: 9.8 Critical
+Vector：CVSS：
+CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+受影响版本排查(受影响/不受影响):
+1.master:不受影响
+2.openEuler-20.03-LTS-Next:不受影响
+3.openEuler-20.03-LTS-SP1:不受影响
+4.openEuler-20.03-LTS-SP2:不受影响
+5.openEuler-20.03-LTS:不受影响
+6.openEuler-21.03:不受影响
+7.openEuler-21.09:不受影响
+
+修复是否涉及abi变化(是/否):
+1.master:否
+2.openEuler-20.03-LTS-Next:否
+3.openEuler-20.03-LTS-SP1:否
+4.openEuler-20.03-LTS-SP2:否
+5.openEuler-20.03-LTS:否
+6.openEuler-21.03:否
+7.openEuler-21.09:否
+
+配置github代理：
+git config --global user.name zhangtao2020
+git config --global user.email 18066722603@163.com
+git config --global http.proxy http://域账号:域密码@proxy.huawei.com:8080
+git config --global http.sslVerify false
+
+
+export https_proxy="http://user:pass@proxyhk.huawei.com:8080/"
+export http_proxy="http://user:pass@proxyhk.huawei.com:8080/"
+
+
+黄区aarch64单板：9.82.213.170
+密码：openEuler12#$
+
+rpmbuild --showrc //查看rpm全部宏
+格式下github的tar-ver包下载：https://github.com/AcademySoftwareFoundation/openexr/archive/v3.1.3/openexr-3.13.tar.gz
+
+卸载python3:
+1、卸载python3
+rpm -qa|grep python3|xargs rpm -ev --allmatches --nodeps 卸载pyhton3
+2、whereis python3 |xargs rm -frv 删除所有残余文件
+成功卸载！
+3、whereis python 查看现有安装的python
+
+linux命令：
+去重复行 //sort -u pkg.txt > new-pkg.txt
+命令行参数 xargs
+过滤：
+1）过滤文件名 find -name *.tar.* -O *.zip
+2）过滤内容 who | cut -b/c/f
+文本操作：
+1）sed -a/c/d/i/p/s/e/f/n/h/V
+https://www.runoob.com/linux/linux-comm-sed.html
+
+linux cut命令主要是接受三个定位方法：
+第一，字节（bytes），用选项-b
+例子：echo "12354sgo08091" |cut -b 5/[1-4]/[7,1-4]/[-4]/[4-]/[-4,4-]
+第二，字符（characters），用选项-c
+例子：echo "12354sgo08091" |cut -c 1,4/[1-4]/[1-4,7]
+第三，域（fields），用选项-f
+例子：cat /etc/passwd|head -n 5| cut -d : -f 1（-d选项设定以：为间隔符，-f 后设定哪个域）
+find -name file -delete //查找并删除file
+
+%post arbitrator
+[ -L /etc/systemd/system/multi-user.target.wants/booth@booth.service ] &&
+    ln -sf /usr/lib/systemd/system/booth@.service /etc/systemd/system/multi-user.target.wants/booth@booth.service  || :
+%systemd_post booth@booth.service
+/bin/systemd-tmpfiles --create %_tmpfilesdir/booth.conf || :
+
+sed -e s/@VERSION@/4.2.0/ /home/abuild/rpmbuild/SOURCES/mockito-core.pom
+
+%mvn_build 
+/usr/bin/python3 /usr/share/java-utils/mvn_build.py
+%mvn_package
+/usr/bin/python3 /usr/share/java-utils/mvn_package.py
+%mvn_install
+xmvn-install    -R .xmvn-reactor -n %{name}  -d "/root/rpmbuild/BUILDROOT/%{NAME}-%{VERSION}-%{RELEASE}.aarch64" 
+jdir=target/site/apidocs; [ -d .xmvn/apidocs ] && jdir=.xmvn/apidocs 
+/usr/bin/mkdir -p /root/rpmbuild/BUILDROOT/%{NAME}-%{VERSION}-%{RELEASE}.aarch64%{_licensedir} 
+if [ -d "${jdir}" ]; then 
+   install -dm755 /root/rpmbuild/BUILDROOT/%{NAME}-%{VERSION}-%{RELEASE}.aarch64/usr/share/javadoc/%{name} 
+   cp -pr "${jdir}"/* /root/rpmbuild/BUILDROOT/%{NAME}-%{VERSION}-%{RELEASE}.aarch64/usr/share/javadoc/%{name} 
+   echo '/usr/share/javadoc/%{name}' >>.mfiles-javadoc 
+fi 
+%mvn_alias
+/usr/bin/python3 /usr/share/java-utils/mvn_alias.py
+%mvn_artifact 
+/usr/bin/python3 /usr/share/java-utils/mvn_artifact.py
+%mvn_config
+/usr/bin/python3 /usr/share/java-utils/mvn_config.py
+%mvn_package
+/usr/bin/python3 /usr/share/java-utils/mvn_package.py
+%mvn_compat_version
+/usr/bin/python3 /usr/share/java-utils/mvn_compat_version.py
+
+mvn install:install-file -DgroupId=org.junit.jupiter -DartifactId=junit-jupiter -Dversion=5.7.2 -Dpackaging=jar -Dfile=../../SOURCES/junit-jupiter-5.7.2.jar
+mvn install:install-file -DgroupId=org.xmlunit -DartifactId=xmlunit-assertj3 -Dversion=2.8.2 -Dpackaging=jar -Dfile=../../SOURCES/xmlunit-assertj3-2.8.2.jar
+mvn install:install-file -DgroupId=org.xmlunit -DartifactId=xmlunit-core -Dversion=2.8.2 -Dpackaging=jar -Dfile=../../SOURCES/xmlunit-core-2.8.2.jar
+
+mkdir -p ~/.m2/repository/org/xmlunit/xmlunit-parent/2.8.2/
+cp ../../SOURCES/xmlunit-parent-2.8.2.pom ~/.m2/repository/org/xmlunit/xmlunit-parent/2.8.2/
+cp ../../SOURCES/xmlunit-assertj3-2.8.2.pom ~/.m2/repository/org/xmlunit/xmlunit-assertj3/2.8.2/
+cp ../../SOURCES/xmlunit-core-2.8.2.pom ~/.m2/repository/org/xmlunit/xmlunit-core/2.8.2/
+
+mvn install:install-file -DgroupId=net.bytebuddy -DartifactId=byte-buddy-agent -Dversion=1.9.3 -Dpackaging=jar -Dfile=../../SOURCES/byte-buddy-agent-1.9.3.jar
+mkdir -p ~/.m2/repository/net/bytebuddy/byte-buddy-agent/1.9.3/
+cp ../../SOURCES/byte-buddy-agent-1.9.3.pom ~/.m2/repository/net/bytebuddy/byte-buddy-agent/1.9.3/
+
+maven仓华为云https://mirrors.huaweicloud.com/artifactory/maven-public/org/hamcrest/hamcrest/
+
+目前门禁是不支持龙芯架构rpm的编译，failed的请忽略。龙芯分支为开发分支，不影响主线版本的正常运作。
+
+
+我给大家解释一下拉LTS版本分支的逻辑（与拉开发分支Next不太一样）：
+基于Next对应的project的软件包范围确定LTS的版本软件包范围基线，剔除空包之后，去release-management提交pckg-mgmt.yaml，即LTS版本接纳的软件包。
+除此之外，不管是新建仓的或者继承其他openEuler版本的包想进入LTS版本分支，应自提PR先加到pckg-mgmt.yaml，再去community提交PR创建LTS版本分支。
+
+cp ../SOURCES/settings.xml .
+mvn install --settings ./settings.xml -Dmaven.test.skip=true
+
+%pom_change_dep :jansi :::runtime maven-embedder
+%pom_remove_dep -r :logback-classic
+%mvn_alias :maven-resolver-provider :maven-aether-provider
+
+将默认的OpenJDK切换成自己安装的JDK版本：sudo update-alternatives --config java
+
+Maven2 的运行命令为 ： mvn 
+常用命令为 ：
+             mvn archetype:create ：创建 Maven 项目
+             mvn compile ：编译源代码
+             mvn test-compile ：编译测试代码
+             mvn test ： 运行应用程序中的单元测试
+             mvn site ： 生成项目相关信息的网站
+             mvn clean ：清除目标目录中的生成结果
+             mvn package ： 依据项目生成 jar 文件
+             mvn install ：在本地 Repository 中安装 jar
+             mvn eclipse:eclipse ：生成 Eclipse 项目文件
+			 mvn site-deploy：生成站点目录并发布
+settings.xml内容：
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                      http://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <mirrors>
+    <mirror>
+      <id>huaweicloud</id>
+      <mirrorOf>central</mirrorOf>
+      <name>central repo</name>
+      <url>https://mirrors.huaweicloud.com/repository/maven/</url>
+    </mirror>
+  </mirrors>
+</settings>
+
+FTNFS: Fails To Build From Source
+
+linux 服务systemctl
+修改.service后，需要systemctl daemon-reload
+服务操作：systemctl start/restart/stop *.service
+//查看系统上一共安装了多少 unit：
+systemctl  //不带任何参数执行 systemctl 命令会列出所有已启动的 unit：
+//查看加载失败的 unit
+$ systemctl --failed
+//杀死一个服务的所有子进程
+$ systemctl kill apache.service
+//重新加载一个服务的配置文件
+$ systemctl reload apache.service
+//重载所有修改过的配置文件
+$ systemctl daemon-reload
+//显示某个 Unit 的所有底层参数
+$ systemctl show httpd.service
+//显示某个 Unit 的指定属性的值
+$ systemctl show -p CPUShares httpd.service
+//设置某个 Unit 的指定属性
+$ systemctl set-property httpd.service CPUShares=500
+//开机自启动
+$ systemctl enable rot13
+//查看unit的依赖关系
+systemctl list-dependencies [unit] [--reverse]       //选项 --reverse 会反向追踪是谁在使用这个 unit。
+//列出启动失败的服务
+systemctl list-units --state failed
+//只想看服务类型的 unit：
+$ systemctl list-units --type=service --all
+systemctl list-unit-files --type=service|grep -i http  //查看某个unit, type为服务后缀名
+//chkconfig增加一个服务
+1.服务脚本必须存放在/etc/ini.d/目录下；
+2.chkconfig –add servicename
+在chkconfig工具服务列表中增加此服务，此时服务会被在/etc/rc.d/rcN.d中赋予K/S入口了；
+3.chkconfig –level 35 mysqld on
+修改服务的默认启动等级。
+chkconfig –list        #列出所有的系统服务
+chkconfig –add httpd        #增加httpd服务
+chkconfig –del httpd        #删除httpd服务
+chkconfig –level httpd 2345 on        #设置httpd在运行级别为2、3、4、5的情况下都是on（开启）的状态
+chkconfig –list        #列出系统所有的服务启动情况
+chkconfig –list mysqld        #列出mysqld服务设置情况
+chkconfig –level 35 mysqld on        #设定mysqld在等级3和5为开机运行服务，–level 35表示操作只在等级3和5执行，on表示启动，off表示关闭
+chkconfig mysqld on        #设定mysqld在各等级为on，“各等级”包括2、3、4、5等级
+
+[Unit]   # 主要是服务说明
+        Description=test   # 简单描述服务
+        After=network.target    # 描述服务类别，表示本服务需要在network服务启动后在启动
+        Before=xxx.service      # 表示需要在某些服务启动之前启动，After和Before字段只涉及启动顺序，不涉及依赖关系。
+		Wants=: This directive is similar to Requires=, but less strict
+
+        [Service]  # 核心区域
+        Type=forking     # 表示后台运行模式。
+        User=user        # 设置服务运行的用户
+        Group=user       # 设置服务运行的用户组
+        KillMode=control-group   # 定义systemd如何停止服务
+        PIDFile=/usr/local/test/test.pid    # 存放PID的绝对路径
+        Restart=no        # 定义服务进程退出后，systemd的重启方式，默认是不重启
+        ExecStart=/usr/local/test/bin/startup.sh    # 服务启动命令，命令需要绝对路径
+        PrivateTmp=true                               # 表示给服务分配独立的临时空间
+
+        [Install]   
+        WantedBy=multi-user.target  # 多用户
+字段说明：
+Type类型有：
+simple(默认)：#以Execstart字段启动的进程为主进程
+forking:#Execstart 字段以fox（）方式启动，，此时父进程将退出，子进程将成为主进程（后台运行），一般都设置为forking
+oneshot : #类似于simple，但只执行一次，systemd会等他执行完，才执行其他服务
+dbus： #类似于simple，但会等待D—Bus信号后启动
+notify： #类似与simple ，但结束后会发出通知信号，然后systemd才启动其他服务
+idle： #类似与simple，但要等到其他任务都执行完，才启动该服务
+EnvironmentFile:
+指定配置文件，和连词号组合使用，可以避免配置文件不存在的异常。
+
+Environment:
+后面接多个不同的shell变量。
+例如：
+Environment=DATA_DIR=/data/elk
+Environment=LOG_DIR=/var/log/elasticsearch
+Environment=PID_DIR=/var/run/elasticsearch
+EnvironmentFile=-/etc/sysconfig/elasticsearch
+
+连词号（-）：在所有启动设置之前，添加的变量字段，都可以加上连词号
+表示抑制错误，即发生错误时，不影响其他命令的执行。
+比如EnviromentFile=-/etc/sysconfig/xxx 表示即使文件不存在，也不会抛异常
+
+Killmode的类型
+contorl-group （默认） # 当前控制组里所有的子进程都会被杀掉
+process ： #只杀主进程
+mixed： #主进程将收到SIGTERM(终止进程)信号，子进程将收到SIGKILL（无条件终止）信号
+none: # 没有进程会被杀掉，只是执行服务的stop命令
+
+Restart 类型
+no （默认）:#退出后无操作
+on-success ：#只有正常退出时（退出状态码为0），才会重启
+on-failure: #非正常退出时，重启，包括信号终止，和超时
+on-abnaomal: #只有信号终止或超时，才会重启
+on-abort ： #只有在收到没有捕捉到信号终止时，才会重启
+on-watchdog: #超市退出时，才会重启
+always: #不管什么退出原因，都会重启
+对于守护进程，推荐使用on-failure
+RestartSec
+
+表示systemd重启服务之前，需要等待的秒数：RestartSec：30
+各种Exec*字段
+Exec*后面的命令，仅接受‘指令 参数 参数..’格式，不能接受<> |&等特殊字符，很多bash语法也不支持，如果想要支持bash语法，需要设置Tyep=oneshot
+ExecStart： # 启动服务时执行的命令
+ExecReload： # 重启服务时执行的命令
+ExecStop： # 停止服务时执行的命令
+ExecStartPre： # 启动服务前执行的命令
+ExecStartPost：# 启动服务后执行的命令
+ExecStopPost： # 停止服务后执行的命令
+WantedBy字段：
+graphical.target：表示图形用户状态，它依赖于multi-user.target,就是文字界面再加上图形界面，这个 target 已经包含了下面的 multi-user.target。
+multi-user.target：纯文本模式,表示多用户命令行状态，这个设置很重要！
+rescue.target：在无法使用 root 登陆的情况下，systemd 在开机时会多加一个额外的临时系统，与你原本的系统无关。这时你可以取得 root 的权限来维护你的系统。
+emergency.target：紧急处理系统的错误，在无法使用 rescue.target 时，可以尝试使用这种模式！
+shutdown.target：就是执行关机。
+getty.target：可以设置 tty 的配置。
+正常的模式是 multi-user.target 和 graphical.target 两个，救援方面的模式主要是 rescue.target 以及更严重的 emergency.target。如果要修改可提供登陆的 tty 数量，则修改 getty.target。
+
+常见systemctl错误码
+code	desc
+0		命令成功结束
+1		通用未知错误
+2		误用shell命令
+126		命令不可执行
+127		没找到命令
+128		无效退出参数
+128+x	Linux 信号x的严重错误
+130		Linux 信号2 的严重错误，即命令通过SIGINT（Ctrl＋Ｃ）终止
+203		缺失脚本执行器标识
+255		退出状态码越界
+
+//查看log
+https://build.openeuler.org/build/openEuler:22.03:LTS/standard_aarch64/aarch64/pkg-name/_log
+
+//加strip
+find %{buildroot} -type f -name '*.so' -exec strip '{}' ';'
+
+strip命令：
+Usage: strip <option(s)> in-file(s)
+ Removes symbols and sections from files
+ The options are:
+  -I --input-target=<bfdname>      Assume input file is in format <bfdname>
+  -O --output-target=<bfdname>     Create an output file in format <bfdname>
+  -F --target=<bfdname>            Set both input and output format to <bfdname>
+  -p --preserve-dates              Copy modified/access timestamps to the output
+  -D --enable-deterministic-archives
+                                   Produce deterministic output when stripping archives
+  -U --disable-deterministic-archives
+                                   Disable -D behavior (default)
+  -R --remove-section=<name>       Also remove section <name> from the output
+     --remove-relocations <name>   Remove relocations from section <name>
+  -s --strip-all                   Remove all symbol and relocation information
+  -g -S -d --strip-debug           Remove all debugging symbols & sections
+     --strip-dwo                   Remove all DWO sections
+     --strip-unneeded              Remove all symbols not needed by relocations
+     --only-keep-debug             Strip everything but the debug information
+  -M  --merge-notes                Remove redundant entries in note sections (default)
+      --no-merge-notes             Do not attempt to remove redundant notes
+  -N --strip-symbol=<name>         Do not copy symbol <name>
+     --keep-section=<name>         Do not strip section <name>
+  -K --keep-symbol=<name>          Do not strip symbol <name>
+     --keep-section-symbols        Do not strip section symbols
+     --keep-file-symbols           Do not strip file symbol(s)
+  -w --wildcard                    Permit wildcard in symbol comparison
+  -x --discard-all                 Remove all non-global symbols
+  -X --discard-locals              Remove any compiler-generated symbols
+  -v --verbose                     List all object files modified
+  -V --version                     Display this program's version number
+  -h --help                        Display this output
+     --info                        List object formats & architectures supported
+  -o <file>                        Place stripped output into <file>
+
+
+https://gitee.com/src-openeuler/fftw/issues/I4WD3F?from=project-issue
+
+
+
+
+关于安全编译选项整改的注意点：
+1.strip的首先保证有debug包生成，然后在install阶段加strip处理。
+如果spec里面有 %global debug_package %{nil}，建议去掉，如果构建没有问题，
+看一下原来告警的文件是不是在debuginfo包里面，如果有就不用单独加-s或者strip了；
+如果本来有debuginfo包，但是依然有告警，说明需要单独处理，那么采用这种方式修改
+2.chrpath的，建议用chrpath删除rpath后再在/etc/ld.so.conf.d里面加上rpath路径
+（参考https://gitee.com/src-openeuler/vala/pulls/6/files
+https://gitee.com/src-openeuler/vala/pulls/7/files）
+3.go语言的包不处理安全编译选项问题
+
+In python 3.10 the module MutableMapping has moved from:
+collections.MutableMapping
+to
+collections.abc.MutableMapping
+
+This code could fix this so it would work for all python versions:
+
+import collections
+try:
+    from collections import abc
+    collections.MutableMapping = abc.MutableMapping
+except:
+    pass
+	
+
+jumper:账号：bzg ,密码：bzg1107	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+
+
